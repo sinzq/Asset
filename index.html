@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asset Management App</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 20px;
+            font-family: Helvetica, sans-serif;
+        }
+
+        form {
+            width: 100%;
+            max-width: 800px;
+            margin-bottom: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between; /* Space between form groups */
+        }
+
+        .form-group {
+            flex: 0 1 calc(50% - 10px); /* Each form group takes up half of the available space with 10px space between */
+            margin-bottom: 20px; /* Adjust the margin to create proper distance between form groups */
+        }
+
+        .form-group label {
+            display: block; /* Ensure labels are displayed as block elements */
+            margin-bottom: 5px;
+        }
+
+        .form-group input {
+            width: 100%; /* Input fields take up full width */
+            padding: 5px;
+        }
+
+        form button {
+            width: auto; /* Let the button width adjust to content */
+            margin-top: 10px; /* Add some space between inputs and button */
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px; /* Add margin to the bottom of the table */
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        td button {
+            padding: 5px 10px;
+            margin-right: 5px;
+            cursor: pointer;
+        }
+
+        .edit-btn {
+            background-color: #000000bd;
+            color: white;
+            border: none;
+            border-radius: 20px;
+        }
+
+        .delete-btn {
+            background-color: #f44336;
+            color: white;
+            border: none;
+            border-radius: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Asset Management App</h1>
+    <form id="assetForm">
+        <div class="form-group">
+            <label for="hostname">Hostname:</label>
+            <input type="text" id="hostname" required>
+        </div>
+        <div class="form-group">
+            <label for="serialNumber">Serial Number:</label>
+            <input type="text" id="serialNumber" required>
+        </div>
+        <div class="form-group">
+            <label for="ipAddress">IP Address:</label>
+            <input type="text" id="ipAddress" required>
+        </div>
+        <div class="form-group">
+            <label for="remarks">Remarks:</label>
+            <input type="text" id="remarks">
+        </div>
+        <div class="form-group">
+            <label for="dateOfPurchase">Date of Purchase:</label>
+            <input type="date" id="dateOfPurchase" required>
+        </div>
+        <div class="form-group">
+            <label for="tagNumber">Tag Number:</label>
+            <input type="text" id="tagNumber" required>
+        </div>
+        <div class="form-group">
+            <label for="make">Make:</label>
+            <input type="text" id="make" required>
+        </div>
+        <div class="form-group">
+            <label for="model">Model:</label>
+            <input type="text" id="model" required>
+        </div>
+        <button type="submit">Add Asset</button>
+    </form>
+
+    <h2>Asset Dashboard</h2>
+    <table id="assetTable">
+        <thead>
+            <tr>
+                <th>Hostname</th>
+                <th>Serial Number</th>
+                <th>IP Address</th>
+                <th>Remarks</th>
+                <th>Date of Purchase</th>
+                <th>Tag Number</th>
+                <th>Make</th>
+                <th>Model</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="assetList">
+            <!-- Asset data will be dynamically added here -->
+        </tbody>
+    </table>
+            
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                const assetForm = document.getElementById("assetForm");
+                const assetList = document.getElementById("assetList");
+
+                // Load assets from local storage on page load
+                loadAssets();
+
+                assetForm.addEventListener("submit", function(event) {
+                    event.preventDefault();
+
+                    // Get form values
+                    const hostname = document.getElementById("hostname").value;
+                    const serialNumber = document.getElementById("serialNumber").value;
+                    const ipAddress = document.getElementById("ipAddress").value;
+                    const remarks = document.getElementById("remarks").value;
+                    const dateOfPurchase = document.getElementById("dateOfPurchase").value;
+                    const tagNumber = document.getElementById("tagNumber").value;
+                    const make = document.getElementById("make").value;
+                    const model = document.getElementById("model").value;
+
+                    // Create asset object
+                    const asset = {
+                        hostname,
+                        serialNumber,
+                        ipAddress,
+                        remarks,
+                        dateOfPurchase,
+                        tagNumber,
+                        make,
+                        model
+                    };
+
+                    // Save asset to local storage
+                    saveAsset(asset);
+
+                    // Clear form fields
+                    assetForm.reset();
+
+                    // Reload assets
+                    loadAssets();
+                });
+
+                function saveAsset(asset) {
+                    let assets = JSON.parse(localStorage.getItem("assets")) || [];
+                    assets.push(asset);
+                    localStorage.setItem("assets", JSON.stringify(assets));
+                }
+
+                function loadAssets() {
+                    let assets = JSON.parse(localStorage.getItem("assets")) || [];
+                    assetList.innerHTML = "";
+                    assets.forEach(function(asset) {
+                        const row = document.createElement("tr");
+                        row.innerHTML = `
+                            <td>${asset.hostname}</td>
+                            <td>${asset.serialNumber}</td>
+                            <td>${asset.ipAddress}</td>
+                            <td>${asset.remarks}</td>
+                            <td>${asset.dateOfPurchase}</td>
+                            <td>${asset.tagNumber}</td>
+                            <td>${asset.make}</td>
+                            <td>${asset.model}</td>
+                            <td>
+                                <button class="edit-btn" onclick="editAsset(${assets.indexOf(asset)})">Edit</button>
+                                <button class="delete-btn" onclick="deleteAsset(${assets.indexOf(asset)})">Delete</button>
+                            </td>
+                        `;
+                        assetList.appendChild(row);
+                    });
+                }
+
+                window.editAsset = function(index) {
+                    let assets = JSON.parse(localStorage.getItem("assets")) || [];
+                    const asset = assets[index];
+                    document.getElementById("hostname").value = asset.hostname;
+                    document.getElementById("serialNumber").value = asset.serialNumber;
+                    document.getElementById("ipAddress").value = asset.ipAddress;
+                    document.getElementById("remarks").value = asset.remarks;
+                    document.getElementById("dateOfPurchase").value = asset.dateOfPurchase;
+                    document.getElementById("tagNumber").value = asset.tagNumber;
+                    document.getElementById("make").value = asset.make;
+                    document.getElementById("model").value = asset.model;
+
+                    assets.splice(index, 1);
+                    localStorage.setItem("assets", JSON.stringify(assets));
+
+                    loadAssets();
+                }
+
+                window.deleteAsset = function(index) {
+                    let assets = JSON.parse(localStorage.getItem("assets")) || [];
+                    assets.splice(index, 1);
+                    localStorage.setItem("assets", JSON.stringify(assets));
+                    loadAssets();
+                }
+            });
+        </script>
+</body>
+</html>
